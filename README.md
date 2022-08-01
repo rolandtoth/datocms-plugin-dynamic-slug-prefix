@@ -1,2 +1,3 @@
-# datocms-plugin-dynamic-slug
-DatoCMS plugin to use locale or other fields' value in slug.
+# DatoCMS Dynamic Slug Prefix
+
+_coming soon_

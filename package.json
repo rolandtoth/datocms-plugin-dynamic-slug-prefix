@@ -1,0 +1,75 @@
+{
+  "name": "datocms-plugin-dynamic-slug-prefix",
+  "homepage": "https://github.com/rolandtoth/datocms-plugin-dynamic-slug-prefix",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rolandtoth/datocms-plugin-dynamic-slug-prefix"
+  },
+  "version": "0.1.2",
+  "description": "DatoCMS plugin to use locale or other fields' value in the slug prefix.",
+  "dependencies": {
+    "@types/node": "^16.11.26",
+    "@types/react": "^17.0.43",
+    "@types/react-dom": "^17.0.14",
+    "@uiw/react-textarea-code-editor": "^1.6.0",
+    "classnames": "^2.3.1",
+    "datocms-plugin-sdk": "^0.5.2",
+    "datocms-react-ui": "^0.5.2",
+    "lodash": "^4.17.21",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-final-form": "^6.5.9",
+    "react-scripts": "5.0.0",
+    "remeda": "^0.0.32",
+    "slug": "^5.3.0",
+    "typescript": "^4.6.3"
+  },
+  "scripts": {
+    "start": "cross-env BROWSER='none' PUBLIC_URL='/' PORT=3033 react-scripts start",
+    "build": "cross-env PUBLIC_URL='.' react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "datocms",
+    "datocms-plugin",
+    "field-editor",
+    "json-field",
+    "slug"
+  ],
+  "files": [
+    "docs",
+    "build"
+  ],
+  "author": "Roland Toth",
+  "license": "MIT",
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.177",
+    "cross-env": "^7.0.3"
+  },
+  "datoCmsPlugin": {
+    "title": "Dynamic Slug Prefix",
+    "coverImage": "docs/cover.png",
+    "previewImage": "docs/preview.png",
+    "entryPoint": "build/index.html",
+    "permissions": []
+  }
+}
