@@ -164,7 +164,7 @@ const DynamicSlugPrefix: FC<PropTypes> = ({ ctx }) => {
               parentSlug = parentApiResponse[parentSlugName];
             }
 
-            slug = parentSlug;
+            slug += "/" + parentSlug;
           }
           prefix = prefix.replace(`{${FIELD_TOKENS.parent}=${parentApiName}.${parentSlugName}}`, "");
         }
