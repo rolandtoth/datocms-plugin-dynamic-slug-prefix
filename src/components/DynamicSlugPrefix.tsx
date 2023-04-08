@@ -39,20 +39,16 @@ const DynamicSlugPrefix: FC<PropTypes> = ({ ctx }) => {
     strict: false,
   };
 
-  const handleOnChange = (value: string) => {
+  const handleOnBlur = (value: string) => {
     // keep only the last "_" (allows further writing)
     // the default "-" is allowed to enter only once
     value = value.replace(/_(_)+$/, "_");
-
     // replace "-_" or "_-"
     value = value.replace(/_(-)+/g, "_");
     value = value.replace(/-(_)+/g, "-");
 
     value = slug(value, slugifyConfig);
-    ctx.setFieldValue(ctx.fieldPath, value);
-  };
 
-  const handleOnBlur = (value: string) => {
     // DatoCMS can't let save if slug ends with "_" or "-"
     value = value.replace(/[-_]*$/, "");
     ctx.setFieldValue(ctx.fieldPath, value);
@@ -86,7 +82,7 @@ const DynamicSlugPrefix: FC<PropTypes> = ({ ctx }) => {
     // set which field "eg. productsPage.slug" - do not query _allSlugLocales but the field (with locale)
     const apiName = getTokenValueFromPrefixTemplate(prefix, FIELD_TOKENS.apiName);
     if (apiName) {
-        const query = isLocalizedField
+        let query = isLocalizedField
           ? `
           {
             ${apiName} {
@@ -109,6 +105,7 @@ const DynamicSlugPrefix: FC<PropTypes> = ({ ctx }) => {
             'Content-Type': 'application/json',
             Accept: 'application/json',
             Authorization: `Bearer ${globalSettings.current.readonlyApiToken}`,
+            "X-Include-Drafts": 'true',
           },
           body: JSON.stringify({ query }),
         }).then(res => res.json());
@@ -120,6 +117,56 @@ const DynamicSlugPrefix: FC<PropTypes> = ({ ctx }) => {
           slug = apiResponse[apiName]._allSlugLocales.find((x: any) => x.locale.toLowerCase() === locale.toLowerCase())?.value;
         } else {
           slug = apiResponse.slug;
+        }
+
+        const parent = getTokenValueFromPrefixTemplate(prefix, FIELD_TOKENS.parent);
+
+        if (parent) {
+          const parentId = ctx.item?.attributes.parent_id;
+          const [ parentApiName, parentSlugName ] = parent.split(".");
+          const allSlugLocales = `_all${parentSlugName.charAt(0).toUpperCase()}${parentSlugName.slice(1)}Locales`;
+
+          if (parentId) {
+            let query = isLocalizedField
+            ? `
+            {
+              ${parentApiName}(filter: { id: { eq: ${parentId} }}) {
+                ${allSlugLocales} {
+                  locale
+                  value
+                }
+              }
+            }`
+            : `
+            {
+              ${parentApiName}(filter: { id: {eq: ${parentId}} }) {
+                ${parentSlugName}
+              }
+            }`;
+
+            const { data: parentApiResponse } = await fetch(`https://graphql.datocms.com/${globalSettings.current.env}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                Authorization: `Bearer ${globalSettings.current.readonlyApiToken}`,
+                "X-Include-Drafts": 'true',
+              },
+              body: JSON.stringify({ query }),
+            }).then(res => res.json());
+
+            let parentSlug;
+
+            if (isLocalizedField) {
+              const locale = ctx.locale.replace("-", "_");
+              parentSlug = parentApiResponse[parentApiName][allSlugLocales].find((x: any) => x.locale.toLowerCase() === locale.toLowerCase())?.value;
+            } else {
+              parentSlug = parentApiResponse[parentSlugName];
+            }
+
+            slug = parentSlug;
+          }
+          prefix = prefix.replace(`{${FIELD_TOKENS.parent}=${parentApiName}.${parentSlugName}}`, "");
         }
 
         prefix = prefix.replace(`{${FIELD_TOKENS.apiName}=${apiName}}`, slug || "");
@@ -140,10 +187,9 @@ const DynamicSlugPrefix: FC<PropTypes> = ({ ctx }) => {
         </span>
         <input
           className={s["dynamic-slug-prefix__input"]}
-          onChange={(e) => handleOnChange(e.currentTarget.value)}
           onBlur={(e) => handleOnBlur(e.currentTarget.value)}
           name={ctx.fieldPath}
-          value={initialValue as string}
+          defaultValue={initialValue as string}
           autoComplete="off"
         />
       </div>

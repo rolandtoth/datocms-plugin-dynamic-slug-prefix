@@ -8,4 +8,5 @@ export const FIELD_TOKENS = {
     apiName: "API_NAME",
     globalDomain: "GLOBAL_DOMAIN",
     locale: "LOCALE",
+    parent: "PARENT",
 };
