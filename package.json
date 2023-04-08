@@ -5,7 +5,7 @@
     "type": "git",
     "url": "https://github.com/rolandtoth/datocms-plugin-dynamic-slug-prefix"
   },
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "DatoCMS plugin to use locale or other fields' value in the slug prefix.",
   "dependencies": {
     "@types/node": "^16.11.26",
