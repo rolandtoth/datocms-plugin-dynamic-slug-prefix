@@ -4,8 +4,8 @@ import get from "lodash/get";
 import { Canvas } from "datocms-react-ui";
 import { setLastCharacter } from "../utils/helpers";
 import s from '../lib/styles.module.css';
-import {FIELD_TOKENS} from "../constants";
-import {FieldLevelSettings, GlobalSettings, Mapping} from "../lib/types";
+import { FIELD_TOKENS } from "../constants";
+import { FieldLevelSettings, GlobalSettings, Mapping } from "../lib/types";
 var slug = require('slug');
 
 type PropTypes = {
@@ -82,8 +82,8 @@ const DynamicSlugPrefix: FC<PropTypes> = ({ ctx }) => {
     // set which field "eg. productsPage.slug" - do not query _allSlugLocales but the field (with locale)
     const apiName = getTokenValueFromPrefixTemplate(prefix, FIELD_TOKENS.apiName);
     if (apiName) {
-        let query = isLocalizedField
-          ? `
+      let query = isLocalizedField
+        ? `
           {
             ${apiName} {
               _allSlugLocales {
@@ -92,42 +92,43 @@ const DynamicSlugPrefix: FC<PropTypes> = ({ ctx }) => {
               }
             }
           }`
-          : `
+        : `
           {
             ${apiName} {
               slug
             }
           }`;
 
-        const { data: apiResponse } = await fetch(`https://graphql.datocms.com/${globalSettings.current.env}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            Authorization: `Bearer ${globalSettings.current.readonlyApiToken}`,
-            "X-Include-Drafts": 'true',
-          },
-          body: JSON.stringify({ query }),
-        }).then(res => res.json());
+      const { data: apiResponse } = await fetch('https://graphql.datocms.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Authorization: `Bearer ${globalSettings.current.readonlyApiToken}`,
+          "X-Include-Drafts": 'true',
+          "X-Environment": ctx.environment,
+        },
+        body: JSON.stringify({ query }),
+      }).then(res => res.json());
 
-        let slug;
+      let slug;
 
-        if (isLocalizedField) {
-          const locale = ctx.locale.replace("-", "_");
-          slug = apiResponse[apiName]._allSlugLocales.find((x: any) => x.locale.toLowerCase() === locale.toLowerCase())?.value;
-        } else {
-          slug = apiResponse.slug;
-        }
+      if (isLocalizedField) {
+        const locale = ctx.locale.replace("-", "_");
+        slug = apiResponse[apiName]._allSlugLocales.find((x: any) => x.locale.toLowerCase() === locale.toLowerCase())?.value;
+      } else {
+        slug = apiResponse.slug;
+      }
 
-        const parent = getTokenValueFromPrefixTemplate(prefix, FIELD_TOKENS.parent);
+      const parent = getTokenValueFromPrefixTemplate(prefix, FIELD_TOKENS.parent);
 
-        if (parent) {
-          const parentId = ctx.item?.attributes.parent_id;
-          const [ parentApiName, parentSlugName ] = parent.split(".");
-          const allSlugLocales = `_all${parentSlugName.charAt(0).toUpperCase()}${parentSlugName.slice(1)}Locales`;
+      if (parent) {
+        const parentId = ctx.item?.attributes.parent_id;
+        const [parentApiName, parentSlugName] = parent.split(".");
+        const allSlugLocales = `_all${parentSlugName.charAt(0).toUpperCase()}${parentSlugName.slice(1)}Locales`;
 
-          if (parentId) {
-            let query = isLocalizedField
+        if (parentId) {
+          let query = isLocalizedField
             ? `
             {
               ${parentApiName}(filter: { id: { eq: ${parentId} }}) {
@@ -144,32 +145,33 @@ const DynamicSlugPrefix: FC<PropTypes> = ({ ctx }) => {
               }
             }`;
 
-            const { data: parentApiResponse } = await fetch(`https://graphql.datocms.com/${globalSettings.current.env}`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-                Authorization: `Bearer ${globalSettings.current.readonlyApiToken}`,
-                "X-Include-Drafts": 'true',
-              },
-              body: JSON.stringify({ query }),
-            }).then(res => res.json());
+          const { data: parentApiResponse } = await fetch('https://graphql.datocms.com', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              Authorization: `Bearer ${globalSettings.current.readonlyApiToken}`,
+              "X-Include-Drafts": 'true',
+              "X-Environment": ctx.environment,
+            },
+            body: JSON.stringify({ query }),
+          }).then(res => res.json());
 
-            let parentSlug;
+          let parentSlug;
 
-            if (isLocalizedField) {
-              const locale = ctx.locale.replace("-", "_");
-              parentSlug = parentApiResponse[parentApiName][allSlugLocales].find((x: any) => x.locale.toLowerCase() === locale.toLowerCase())?.value;
-            } else {
-              parentSlug = parentApiResponse[parentSlugName];
-            }
-
-            slug += "/" + parentSlug;
+          if (isLocalizedField) {
+            const locale = ctx.locale.replace("-", "_");
+            parentSlug = parentApiResponse[parentApiName][allSlugLocales].find((x: any) => x.locale.toLowerCase() === locale.toLowerCase())?.value;
+          } else {
+            parentSlug = parentApiResponse[parentSlugName];
           }
-          prefix = prefix.replace(`{${FIELD_TOKENS.parent}=${parentApiName}.${parentSlugName}}`, "");
-        }
 
-        prefix = prefix.replace(`{${FIELD_TOKENS.apiName}=${apiName}}`, slug || "");
+          slug += "/" + parentSlug;
+        }
+        prefix = prefix.replace(`{${FIELD_TOKENS.parent}=${parentApiName}.${parentSlugName}}`, "");
+      }
+
+      prefix = prefix.replace(`{${FIELD_TOKENS.apiName}=${apiName}}`, slug || "");
     }
 
     return setLastCharacter(prefix, "/");
