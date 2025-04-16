@@ -35,6 +35,6 @@ Mappings
 
 ## Changelog
 
-### v0.2.0 - 2025-04-16
+### v0.2.1 - 2025-04-16
 
 - fix: remove non-functional "env" config setting, always use the current DatoCMS environment
